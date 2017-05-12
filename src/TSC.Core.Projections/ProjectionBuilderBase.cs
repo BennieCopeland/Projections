@@ -20,8 +20,7 @@ namespace TSC.Core.Projections
             }
         }
 
-        IDictionary<Type, Action<object, IDictionary<string, object>, TReadModel>> handlers
-            = new Dictionary<Type, Action<object, IDictionary<string, object>, TReadModel>>();
+        IDictionary<Type, Action<object, IDictionary<string, object>, TReadModel>> handlers = new Dictionary<Type, Action<object, IDictionary<string, object>, TReadModel>>();
 
         private bool readModelInitialized = false;
 
@@ -29,6 +28,11 @@ namespace TSC.Core.Projections
 
         public ProjectionBuilderBase(IProjectionRepository repository)
         {
+            if(repository == null)
+            {
+                throw new ArgumentNullException(nameof(repository));
+            }
+
             var result = repository.Get<TReadModel>();
 
             if (result.HasValue)
