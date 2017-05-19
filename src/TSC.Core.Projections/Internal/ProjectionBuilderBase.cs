@@ -43,6 +43,7 @@ namespace TSC.Core.Projections
         }
 
         public long LastSequenceProcessed { get; } = -1;
+        public object ReadModel { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public void HandleEvent(long sequenceNumber, object @event, IDictionary<string, object> metadata)
         {

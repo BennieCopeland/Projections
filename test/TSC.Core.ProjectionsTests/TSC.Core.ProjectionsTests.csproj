@@ -68,6 +68,7 @@
     <Compile Include="describe_ProjectionBuilder\describe_handling_an_event.cs" />
     <Compile Include="describe_ProjectionBuilder\_ProjectionBuilder.cs" />
     <Compile Include="describe_ProjectionFactory\_ProjectionFactory.cs" />
+    <Compile Include="Helpers\MockDefinition.cs" />
     <Compile Include="MultiOutputFormatter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -6,6 +6,6 @@ namespace TSC.Core.Projections
 {
     public interface IProjectionDefinition
     {
-        void GetDefinition(IProjectionDefinitionBuilder definitions);
+        void GetDefinition(IProjectionDefinitionBuilder definitionBuilder);
     }
 }
