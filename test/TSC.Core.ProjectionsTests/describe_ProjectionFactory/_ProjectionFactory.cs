@@ -16,7 +16,7 @@ namespace TSC.Core.ProjectionsTests.describe_ProjectionFactory
         (bool, long, ReadModel1) NO_READ_MODEL = (false, -1, null);
         protected readonly (bool, long, ReadModel1) EXISITING_READ_MODEL = (true, 5, new ReadModel1 { State = "Read Model From Repository" });
 
-        void describe_construction()
+        void describe_constructing()
         {
             context["given the repository is null"] = () =>
             {
@@ -51,9 +51,9 @@ namespace TSC.Core.ProjectionsTests.describe_ProjectionFactory
             };
         }
 
-        void describe_creating_a_single_projection()
+        void describe_CreateProjection_method()
         {
-            context["given a projection defintion exist for the read model"] = () =>
+            context["when a projection defintion exist for the read model"] = () =>
             {
                 Mock<IProjectionRepository> repository = null;
                 ProjectionFactory factory = null;
@@ -75,7 +75,7 @@ namespace TSC.Core.ProjectionsTests.describe_ProjectionFactory
 
                 act = () => projection = factory.CreateProjection<ReadModel1>();
 
-                it["will return a projection for the correct read model"] = () =>
+                it["returns a projection for the correct read model"] = () =>
                 {
                     projection.ReadModel.GetType().Should().Be(typeof(ReadModel1));
                     //GetReadModel @event = new GetReadModel();
@@ -84,7 +84,7 @@ namespace TSC.Core.ProjectionsTests.describe_ProjectionFactory
                 };
             };
 
-            context["given a projection defintion does not exist for the read model"] = () =>
+            context["when a projection defintion does not exist for the read model"] = () =>
             {
                 Mock<IProjectionRepository> repository = null;
                 ProjectionFactory factory = null;
@@ -98,13 +98,13 @@ namespace TSC.Core.ProjectionsTests.describe_ProjectionFactory
 
                 act = () => factory.CreateProjection<ReadModel1>();
 
-                it["will throw a ProjectionNotFoundException"] = expect<ProjectionNotFoundException>();
+                it["throws a ProjectionNotFoundException"] = expect<ProjectionNotFoundException>();
             };
         }
 
-        void describe_creating_multiple_projections()
+        void describe_CreateProjections_method()
         {
-            context["given there are projection defintions"] = () =>
+            context["when there are projection defintions"] = () =>
             {
                 Mock<IProjectionRepository> repository = null;
                 ProjectionFactory factory = null;
@@ -137,9 +137,31 @@ namespace TSC.Core.ProjectionsTests.describe_ProjectionFactory
                     projections[1].ReadModel.GetType().Should().Be(typeof(ReadModel2));
                 };
             };
+
+            context["when there are no projection defintions"] = () =>
+            {
+                Mock<IProjectionRepository> repository = null;
+                ProjectionFactory factory = null;
+                List<IProjection> projections = null;
+
+                beforeEach = () =>
+                {
+                    repository = new Mock<IProjectionRepository>();
+                    var definitions = new IProjectionDefinition[] { };
+
+                    factory = new ProjectionFactory(repository.Object, definitions);
+                };
+
+                act = () => projections = factory.CreateProjections().ToList();
+
+                it["will return an empty list"] = () =>
+                {
+                    projections.Should().BeEmpty();
+                };
+            };
         }
 
-        void describe_blah()
+        void describe_projections()
         {
             context["given a projection definition"] = () =>
             {
