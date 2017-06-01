@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Moq;
 using NSpec;
 using TSC.Core.Projections;
 using TSC.Core.ProjectionsTests.describe_ProjectionFactory;
@@ -33,6 +34,10 @@ namespace TSC.Core.ProjectionsTests.describe_Projections
                             });
                             
                     });
+
+                    var repository = new Mock<IProjectionRepository>();
+
+                    factory = new ProjectionFactory(repository.Object, new IProjectionDefinition[] { definition });
                 };
 
                 act = () => projection = factory.CreateProjection<ReadModel1>();
@@ -52,6 +57,9 @@ namespace TSC.Core.ProjectionsTests.describe_Projections
         {
             context["when a handler is defined for the event"] = () =>
             {
+                IProjection projection = null;
+
+                act = () => projection.HandleEvent(0, new SomeEvent(), null);
 
             };
 
@@ -60,14 +68,14 @@ namespace TSC.Core.ProjectionsTests.describe_Projections
 
             };
 
-            context["and the sequence number is less than the next expected sequence number"] = () =>
+            context["when the sequence number is less than the next expected sequence number"] = () =>
             {
                 it["will not call any handlers"] = todo;
 
                 it["will not persist the readmodel"] = todo;
             };
 
-            context["and the sequence number is equal to the next expected sequence number"] = () =>
+            context["when the sequence number is equal to the next expected sequence number"] = () =>
             {
                 it["will call the handlers with the initial read model"] = todo;
 
@@ -76,17 +84,17 @@ namespace TSC.Core.ProjectionsTests.describe_Projections
                 it["will update the value for the last processed sequence"] = todo;
             };
 
-            context["and the sequence number is greater than the next expected sequence number"] = () =>
+            context["when the sequence number is greater than the next expected sequence number"] = () =>
             {
                 it["will throw an exception"] = todo;
             };
 
-            context["and the event is null"] = () =>
+            context["when the event is null"] = () =>
             {
                 it["will throw an exception"] = todo;
             };
 
-            context["and the metadata is null"] = () =>
+            context["when the metadata is null"] = () =>
             {
                 it["will use an empty metadata dictionary"] = todo;
             };
