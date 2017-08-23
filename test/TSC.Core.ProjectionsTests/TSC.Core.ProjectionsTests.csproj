@@ -64,9 +64,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebuggerShim.cs" />
-    <Compile Include="describe_ProjectionBuilder\describe_constructing.cs" />
-    <Compile Include="describe_ProjectionBuilder\describe_handling_an_event.cs" />
-    <Compile Include="describe_ProjectionBuilder\_ProjectionBuilder.cs" />
     <Compile Include="describe_ProjectionFactory\_ProjectionFactory.cs" />
     <Compile Include="describe_Projections\_Projection.cs" />
     <Compile Include="Helpers\MockDefinition.cs" />
