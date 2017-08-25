@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NSpec.Domain;
 using NSpec.Domain.Formatters;
 
-namespace TSC.Core.ProjectionsTests
+namespace TSC.Core.Projections.Tests
 {
     class MultiOutputFormatter : IFormatter, ILiveFormatter
     {

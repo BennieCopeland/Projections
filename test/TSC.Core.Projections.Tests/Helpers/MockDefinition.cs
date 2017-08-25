@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TSC.Core.Projections;
 
-namespace TSC.Core.ProjectionsTests.Helpers
+namespace TSC.Core.Projections.Tests.Helpers
 {
     class MockDefinition : IProjectionDefinition
     {
@@ -19,7 +19,7 @@ namespace TSC.Core.ProjectionsTests.Helpers
             this.definitionFunction = definitionFunction;
         }
 
-        public void GetDefinition(IProjectionDefinitionBuilder definitionBuilder)
+        public void OnDefinitionBuilding(IProjectionDefinitionBuilder definitionBuilder)
         {
             GetDefinitionCalled = true;
             ++Times;

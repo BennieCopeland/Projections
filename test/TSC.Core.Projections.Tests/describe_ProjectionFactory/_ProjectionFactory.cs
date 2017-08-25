@@ -7,9 +7,9 @@ using FluentAssertions;
 using Moq;
 using NSpec;
 using TSC.Core.Projections;
-using TSC.Core.ProjectionsTests.Helpers;
+using TSC.Core.Projections.Tests.Helpers;
 
-namespace TSC.Core.ProjectionsTests.describe_ProjectionFactory
+namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
 {
     class _ProjectionFactory : nspec
     {

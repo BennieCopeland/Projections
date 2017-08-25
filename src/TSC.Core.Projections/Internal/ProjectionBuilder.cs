@@ -11,7 +11,7 @@ namespace TSC.Core.Projections.Internal
 
         public ProjectionBuilder(IProjectionDefinition definition)
         {
-            definition.GetDefinition(this);
+            definition.OnDefinitionBuilding(this);
         }
 
         public IHandleEvents<TState> NewDefinition<TState>(Func<TState> initFunction)

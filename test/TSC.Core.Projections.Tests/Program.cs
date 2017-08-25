@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using NSpec;
+﻿using NSpec;
 using NSpec.Domain;
 using NSpec.Domain.Formatters;
+using System;
+using System.Linq;
+using System.Reflection;
 
-namespace TSC.Core.ProjectionsTests
+namespace TSC.Core.Projections.Tests
 {
     class Program
     {

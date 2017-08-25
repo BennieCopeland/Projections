@@ -7,10 +7,10 @@ using FluentAssertions;
 using Moq;
 using NSpec;
 using TSC.Core.Projections;
-using TSC.Core.ProjectionsTests.describe_ProjectionFactory;
-using TSC.Core.ProjectionsTests.Helpers;
+using TSC.Core.Projections.Tests.describe_ProjectionFactory;
+using TSC.Core.Projections.Tests.Helpers;
 
-namespace TSC.Core.ProjectionsTests.describe_Projections
+namespace TSC.Core.Projections.Tests.describe_Projections
 {
     class _Projection : nspec
     {
