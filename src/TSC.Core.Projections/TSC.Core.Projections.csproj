@@ -8,7 +8,12 @@
     <Company>TSC</Company>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netstandard1.5\TSC.Core.Projections.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
   </ItemGroup>
 

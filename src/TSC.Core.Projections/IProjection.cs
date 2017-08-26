@@ -5,6 +5,8 @@ using System.Text;
 
 namespace TSC.Core.Projections
 {
+    public delegate bool CanSaveProjection();
+
     public interface IProjection
     {
         long LastSequenceProcessed { get; }
@@ -13,6 +15,6 @@ namespace TSC.Core.Projections
 
         void HandleEvent(long sequenceNumber, object @event, IDictionary<string, object> metadata);
 
-        void PersistProjection();
+        CanSaveProjection CanSaveProjection { get; set; }
     }
 }

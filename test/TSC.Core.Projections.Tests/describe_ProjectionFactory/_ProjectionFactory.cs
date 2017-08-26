@@ -13,8 +13,8 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
 {
     class _ProjectionFactory : nspec
     {
-        (bool, long, ReadModel1) NO_READ_MODEL = (false, -1, null);
-        protected readonly (bool, long, ReadModel1) EXISITING_READ_MODEL = (true, 5, new ReadModel1 { State = "Read Model From Repository" });
+        private readonly object NO_READ_MODEL = null;
+        private readonly object EXISITING_READ_MODEL = ProjectionStateCreator.CreateRepositoryResult(5, new ReadModel1 { State = "Read Model From Repository" });
 
         void describe_constructing()
         {
@@ -66,7 +66,9 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
                     {
                         new MockDefinition((builder) =>
                         {
-                            builder.NewDefinition<ReadModel1>(() => new ReadModel1())
+                            builder
+                                .ForModel<ReadModel1>()
+                                .InitialState(() => new ReadModel1())
                                 .When<EventOne>((e, s) => s.State = e.NewState);
                         })
                     };
@@ -117,11 +119,11 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
                     {
                         new MockDefinition((builder) =>
                         {
-                            builder.NewDefinition<ReadModel1>(() => new ReadModel1());
+                            builder.ForModel<ReadModel1>().InitialState(() => new ReadModel1());
                         }),
                         new MockDefinition((builder) =>
                         {
-                            builder.NewDefinition<ReadModel2>(() => new ReadModel2());
+                            builder.ForModel<ReadModel2>().InitialState(() => new ReadModel2());
                         })
                     };
 
@@ -171,18 +173,17 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
                 {
                     definition = new MockDefinition((builder =>
                     {
-                        builder.NewDefinition<ReadModel1>(() => new ReadModel1() { State = "Initial State" });
+                        builder.ForModel<ReadModel1>().InitialState(() => new ReadModel1() { State = "Initial State" });
                     }));
                 };
 
                 context["and there is no persisted read model"] = () =>
                 {
-                    Mock<IProjectionRepository> repository = null;
+                    IProjectionRepository repository = null;
 
                     beforeEach = () =>
                     {
-                        repository = new Mock<IProjectionRepository>();
-                        repository.Setup(repo => repo.Get<ReadModel1>()).Returns(NO_READ_MODEL);
+                        repository = new RepositoryMock();
                     };
 
                     context["when the projection is created"] = () =>
@@ -192,7 +193,7 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
 
                         beforeEach = () =>
                         {
-                            factory = new ProjectionFactory(repository.Object, new []{ definition });
+                            factory = new ProjectionFactory(repository, new []{ definition });
                         };
 
                         act = () => projection = factory.CreateProjection<ReadModel1>();
@@ -212,12 +213,12 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
 
                 context["and there is a persisted read model"] = () =>
                 {
-                    Mock<IProjectionRepository> repository = null;
+                    IProjectionRepository repository = null;
 
                     beforeEach = () =>
                     {
-                        repository = new Mock<IProjectionRepository>();
-                        repository.Setup(repo => repo.Get<ReadModel1>()).Returns(EXISITING_READ_MODEL);
+                        repository = new RepositoryMock()
+                            .Setup(5, new ReadModel1 { State = "Read Model From Repository" });
                     };
 
                     context["when the projection is created"] = () =>
@@ -227,7 +228,7 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
 
                         beforeEach = () =>
                         {
-                            factory = new ProjectionFactory(repository.Object, new[] { definition });
+                            factory = new ProjectionFactory(repository, new[] { definition });
                         };
 
                         act = () => projection = factory.CreateProjection<ReadModel1>();
