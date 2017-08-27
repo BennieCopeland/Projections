@@ -13,9 +13,6 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
 {
     class _ProjectionFactory : nspec
     {
-        private readonly object NO_READ_MODEL = null;
-        private readonly object EXISITING_READ_MODEL = ProjectionStateCreator.CreateRepositoryResult(5, new ReadModel1 { State = "Read Model From Repository" });
-
         void describe_constructing()
         {
             context["given the repository is null"] = () =>
@@ -48,6 +45,38 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
                 act = () => new ProjectionFactory(repository.Object, UNUSED_DEFINITIONS);
 
                 it["will throw an ArgumentNullException"] = expect<ArgumentNullException>("Value cannot be null.\r\nParameter name: definitions");
+            };
+
+            context["given there are duplicate projection defintions"] = () =>
+            {
+                Mock<IProjectionRepository> repository = null;
+                IProjectionDefinition[] definitions = null;
+                Action action = null;
+
+                beforeEach = () =>
+                {
+                    repository = new Mock<IProjectionRepository>();
+                    definitions = new IProjectionDefinition[]
+                    {
+                        new MockDefinition((builder) =>
+                        {
+                            builder.ForModel<ReadModel1>().InitialState(() => new ReadModel1())
+                                .When<string>((e, s) => s.State = "");
+                        }),
+                        new MockDefinition((builder) =>
+                        {
+                            builder.ForModel<ReadModel1>().InitialState(() => new ReadModel1())
+                                .When<string>((e, s) => s.State = "");
+                        })
+                    };
+                };
+
+                act = () => action = () => new ProjectionFactory(repository.Object, definitions);
+
+                it["will throw an exception"] = () =>
+                {
+                    action.ShouldThrow<DuplicateProjectionDefinitionException>().WithMessage("A projection definition for [ReadModel1] already exists.");
+                };
             };
         }
 
@@ -119,11 +148,13 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
                     {
                         new MockDefinition((builder) =>
                         {
-                            builder.ForModel<ReadModel1>().InitialState(() => new ReadModel1());
+                            builder.ForModel<ReadModel1>().InitialState(() => new ReadModel1())
+                                .When<string>((e, s) => s.State = "");
                         }),
                         new MockDefinition((builder) =>
                         {
-                            builder.ForModel<ReadModel2>().InitialState(() => new ReadModel2());
+                            builder.ForModel<ReadModel2>().InitialState(() => new ReadModel2())
+                                .When<string>((e, s) => s.State = "");
                         })
                     };
 
@@ -159,91 +190,6 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
                 it["will return an empty list"] = () =>
                 {
                     projections.Should().BeEmpty();
-                };
-            };
-        }
-
-        void describe_projections()
-        {
-            context["given a projection definition"] = () =>
-            {
-                MockDefinition definition = null;
-
-                beforeEach = () =>
-                {
-                    definition = new MockDefinition((builder =>
-                    {
-                        builder.ForModel<ReadModel1>().InitialState(() => new ReadModel1() { State = "Initial State" });
-                    }));
-                };
-
-                context["and there is no persisted read model"] = () =>
-                {
-                    IProjectionRepository repository = null;
-
-                    beforeEach = () =>
-                    {
-                        repository = new RepositoryMock();
-                    };
-
-                    context["when the projection is created"] = () =>
-                    {
-                        ProjectionFactory factory = null;
-                        IProjection projection = null;
-
-                        beforeEach = () =>
-                        {
-                            factory = new ProjectionFactory(repository, new []{ definition });
-                        };
-
-                        act = () => projection = factory.CreateProjection<ReadModel1>();
-
-                        it["will have a LastSequenceProcessed value of -1"] = () =>
-                        {
-                            projection.LastSequenceProcessed.Should().Be(-1);
-                        };
-
-                        it["will create the read model using the factory method"] = () =>
-                        {
-                            ReadModel1 model = projection.ReadModel as ReadModel1;
-                            model.State.Should().Be("Initial State");
-                        };
-                    };
-                };
-
-                context["and there is a persisted read model"] = () =>
-                {
-                    IProjectionRepository repository = null;
-
-                    beforeEach = () =>
-                    {
-                        repository = new RepositoryMock()
-                            .Setup(5, new ReadModel1 { State = "Read Model From Repository" });
-                    };
-
-                    context["when the projection is created"] = () =>
-                    {
-                        ProjectionFactory factory = null;
-                        IProjection projection = null;
-
-                        beforeEach = () =>
-                        {
-                            factory = new ProjectionFactory(repository, new[] { definition });
-                        };
-
-                        act = () => projection = factory.CreateProjection<ReadModel1>();
-
-                        it["will have a LastSequenceProcessed of the correct value"] = () =>
-                        {
-                            projection.LastSequenceProcessed.Should().Be(5);
-                        };
-
-                        it["will use the read model from the repository"] = () =>
-                        {
-                            ReadModel1 model = projection.ReadModel as ReadModel1;
-                            model.State.Should().Be("Read Model From Repository");
-                        };
-                    };
                 };
             };
         }

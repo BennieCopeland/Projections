@@ -46,7 +46,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                 it["has a LastSequenceProcessed value of -1"] = () =>
                 {
-                    projection.LastSequenceProcessed.Should().Be(-1);
+                    projection.PreviousSequenceNumber.Should().Be(-1);
                 };
 
                 it["has a new read model"] = () =>
@@ -64,11 +64,6 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
             context["when there is a persisted read model"] = () =>
             {
-
-            };
-
-            context["when there is no definition specified"] = () =>
-            {
                 MockDefinition definition = null;
                 IProjection projection = null;
                 ProjectionFactory factory = null;
@@ -78,11 +73,63 @@ namespace TSC.Core.Projections.Tests.describe_Projections
                 {
                     definition = new MockDefinition((builder) =>
                     {
+                        builder
+                            .ForModel<ReadModel1>()
+                            .InitialState(() => new ReadModel1 { State = "New Read Model" })
+                            .When<SomeEvent>((e, s) =>
+                            {
+                                readModel = s;
+                            });
+
                     });
 
-                    var repository = new RepositoryMock();
+                    var repository = new RepositoryMock()
+                        .Setup(20, new ReadModel1 { State = "Stored state" });
 
                     factory = new ProjectionFactory(repository, new IProjectionDefinition[] { definition });
+                };
+
+                act = () => projection = factory.CreateProjection<ReadModel1>();
+
+                it["has a LastSequenceProcessed value of 20"] = () =>
+                {
+                    projection.PreviousSequenceNumber.Should().Be(20);
+                };
+
+                it["has a new read model"] = () =>
+                {
+                    projection.HandleEvent(21, new SomeEvent(), null);
+                    readModel.State.Should().Be("Stored state");
+                };
+
+                it["will persist the read model by default"] = () =>
+                {
+                    projection.CanSaveProjection().Should().BeTrue();
+                };
+            };
+
+            context["when there is no definition specified"] = () =>
+            {
+                MockDefinition definition = null;
+                RepositoryMock repository = null;
+                ProjectionFactory factory = null;
+                Action action = null;
+
+                beforeEach = () =>
+                {
+                    definition = new MockDefinition((builder) =>
+                    {
+                    });
+
+                    repository = new RepositoryMock();
+                };
+
+                act = () => action = () => factory = new ProjectionFactory(repository, new IProjectionDefinition[] { definition });
+
+                it["throws a projection not defined exception"] = () =>
+                {
+                    action.ShouldThrow<ProjectionNotDefinedException>()
+                        .WithMessage("Projection [MockDefinition] does not define itself.");
                 };
             };
         }
@@ -116,14 +163,14 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                     projection = factory.CreateProjection<ReadModel1>();
 
-                    previousSequenceNumber = projection.LastSequenceProcessed;
+                    previousSequenceNumber = projection.PreviousSequenceNumber;
                 };
 
                 act = () => projection.HandleEvent(0, new SomeEvent(), null);
 
                 it["the LastSequenceProcessed value increased by one"] = () =>
                 {
-                    projection.LastSequenceProcessed.Should().Be(previousSequenceNumber + 1);
+                    projection.PreviousSequenceNumber.Should().Be(previousSequenceNumber + 1);
                 };
 
                 it["the handler will be called"] = () =>
@@ -142,9 +189,10 @@ namespace TSC.Core.Projections.Tests.describe_Projections
                 {
                     var definition = new MockDefinition((builder) =>
                     {
-                        builder
-                            .ForModel<ReadModel1>()
-                            .InitialState(() => new ReadModel1 { State = "New Read Model" });
+                    builder
+                        .ForModel<ReadModel1>()
+                        .InitialState(() => new ReadModel1 { State = "New Read Model" })
+                        .When<string>((e, s) => s.State = "");
                     });
 
                     var repository = new RepositoryMock();
@@ -153,14 +201,14 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                     projection = factory.CreateProjection<ReadModel1>();
 
-                    previousSequenceNumber = projection.LastSequenceProcessed;
+                    previousSequenceNumber = projection.PreviousSequenceNumber;
                 };
 
                 act = () => projection.HandleEvent(0, new SomeEvent(), null);
 
                 it["the LastSequenceProcessed value increased by one"] = () =>
                 {
-                    projection.LastSequenceProcessed.Should().Be(previousSequenceNumber + 1);
+                    projection.PreviousSequenceNumber.Should().Be(previousSequenceNumber + 1);
                 };
 
                 // model is not changed
@@ -207,7 +255,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                         projection = factory.CreateProjection<ReadModel1>();
 
-                        initialSequenceNumber = projection.LastSequenceProcessed;
+                        initialSequenceNumber = projection.PreviousSequenceNumber;
                     };
 
                     act = () => projection.HandleEvent(value.sequenceNumber, new SomeEvent(), null);
@@ -224,7 +272,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                     it["will not increment the LastSequenceNumber"] = () =>
                     {
-                        projection.LastSequenceProcessed.Should().Be(initialSequenceNumber);
+                        projection.PreviousSequenceNumber.Should().Be(initialSequenceNumber);
                     };
                 };
             }
@@ -274,7 +322,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                             projection = factory.CreateProjection<ReadModel1>();
 
-                            initialSequenceNumber = projection.LastSequenceProcessed;
+                            initialSequenceNumber = projection.PreviousSequenceNumber;
                         };
 
                         context["and can save"] = () =>
@@ -291,7 +339,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                             it["will update the LastSequenceProcessed"] = () =>
                             {
-                                projection.LastSequenceProcessed.Should().Be(initialSequenceNumber + 1);
+                                projection.PreviousSequenceNumber.Should().Be(initialSequenceNumber + 1);
                             };
 
                             it["will persist the read model"] = () =>
@@ -322,7 +370,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                             it["will update the LastSequenceProcessed"] = () =>
                             {
-                                projection.LastSequenceProcessed.Should().Be(initialSequenceNumber + 1);
+                                projection.PreviousSequenceNumber.Should().Be(initialSequenceNumber + 1);
                             };
 
                             it["will not persist the read model"] = () =>
@@ -359,7 +407,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                             projection = factory.CreateProjection<ReadModel1>();
 
-                            initialSequenceNumber = projection.LastSequenceProcessed;
+                            initialSequenceNumber = projection.PreviousSequenceNumber;
                         };
 
                         it["will not call any handlers"] = () =>
@@ -369,7 +417,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                         it["will update the LastSequenceProcessed"] = () =>
                         {
-                            projection.LastSequenceProcessed.Should().Be(initialSequenceNumber + 1);
+                            projection.PreviousSequenceNumber.Should().Be(initialSequenceNumber + 1);
                         };
 
                         it["will not persist the read model"] = () =>
@@ -421,7 +469,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                         projection = factory.CreateProjection<ReadModel1>();
 
-                        initialSequenceNumber = projection.LastSequenceProcessed;
+                        initialSequenceNumber = projection.PreviousSequenceNumber;
                     };
 
                     act = () => action = () => projection.HandleEvent(value.sequenceNumber, new SomeEvent(), null);
@@ -461,7 +509,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                     projection = factory.CreateProjection<ReadModel1>();
 
-                    initialSequenceNumber = projection.LastSequenceProcessed;
+                    initialSequenceNumber = projection.PreviousSequenceNumber;
                 };
 
                 act = () => action = () => projection.HandleEvent(0, null, null);
@@ -476,7 +524,6 @@ namespace TSC.Core.Projections.Tests.describe_Projections
             {
                 IProjection projection = null;
                 long initialSequenceNumber = long.MinValue;
-                ReadModel1 readmodel = null;
                 RepositoryMock repository = null;
                 IDictionary<string, object> metadata = null;
 
@@ -499,7 +546,7 @@ namespace TSC.Core.Projections.Tests.describe_Projections
 
                     projection = factory.CreateProjection<ReadModel1>();
 
-                    initialSequenceNumber = projection.LastSequenceProcessed;
+                    initialSequenceNumber = projection.PreviousSequenceNumber;
                 };
 
                 act = () => projection.HandleEvent(0, new SomeEvent(), null);

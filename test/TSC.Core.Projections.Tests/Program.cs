@@ -17,20 +17,26 @@ namespace TSC.Core.Projections.Tests
             var finder = new SpecFinder(types, "");
             var tagsFilter = new Tags().Parse("");
             var builder = new ContextBuilder(finder, tagsFilter, new DefaultConventions());
+            var console = new ConsoleFormatter();
+
+            IFormatter[] formatters =
+            {
+                console
+            };
 
             //create the nspec runner with a
             //live formatter so we get console output
             XUnitFormatter xunit = new XUnitFormatter();
-            xunit.Options.Add("file", options["file"]);
-
-            IFormatter[] formatters =
+            if (options.ContainsKey("file"))
             {
-                xunit
-            };
+                xunit.Options.Add("file", options["file"]);
+                formatters.Append(xunit);
+            }
+
 
             ILiveFormatter[] liveFormatters =
             {
-                new ConsoleFormatter()
+                console
             };
 
             var runner = new ContextRunner(tagsFilter, new MultiOutputFormatter(formatters, liveFormatters), false);

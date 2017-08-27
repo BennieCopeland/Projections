@@ -10,7 +10,7 @@ namespace TSC.Core.Projections
     using TSC.Core.Projections.Internal;
 
     /// <summary>
-    /// A factory used to create <see cref="IProjection"/> instances used to build readmodels.
+    /// A factory to create <see cref="IProjection"/> instances used to build readmodels.
     /// </summary>
     public class ProjectionFactory
     {
@@ -35,28 +35,39 @@ namespace TSC.Core.Projections
             {
                 var builder = new ProjectionBuilder(definition);
 
-                this.builders.Add(builder.Type, builder);
+                try
+                {
+                    this.builders.Add(builder.ForReadModel, builder);
+                }
+                catch (ArgumentException)
+                {
+                    throw new DuplicateProjectionDefinitionException(builder.ForReadModel);
+                }
             }
         }
 
         /// <summary>
-        /// Creates a single <see cref="IProjection"/> ready to handle new events.
+        /// Creates a single <see cref="IProjection"/> ready to handle events.
         /// </summary>
-        /// <typeparam name="T">Blah</typeparam>
-        /// <returns></returns>
-        public IProjection CreateProjection<T>()
+        /// <typeparam name="TReadModel">The type of read model to create a projection for.</typeparam>
+        /// <returns>Returns an <see cref="IProjection"/> for the read model.</returns>
+        public IProjection CreateProjection<TReadModel>()
         {
-            if(builders.TryGetValue(typeof(T), out var builder))
+            if (this.builders.TryGetValue(typeof(TReadModel), out var builder))
             {
-                return builder.Build(repository);
+                return builder.Build(this.repository);
             }
 
-            throw new ProjectionNotFoundException(typeof(T));
+            throw new ProjectionNotFoundException(typeof(TReadModel));
         }
 
+        /// <summary>
+        /// Creates a list of <see cref="IProjection"/> instances ready to handle events.
+        /// </summary>
+        /// <returns>An <see cref="IEnumerable{T}"/> of type <see cref="IProjection"/> containing the projections.</returns>
         public IEnumerable<IProjection> CreateProjections()
         {
-            return builders.Select(builder => builder.Value.Build(repository));
+            return this.builders.Select(builder => builder.Value.Build(this.repository));
         }
     }
 }
