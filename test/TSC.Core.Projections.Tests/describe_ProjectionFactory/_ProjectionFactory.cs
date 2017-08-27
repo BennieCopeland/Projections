@@ -78,6 +78,34 @@ namespace TSC.Core.Projections.Tests.describe_ProjectionFactory
                     action.ShouldThrow<DuplicateProjectionDefinitionException>().WithMessage("A projection definition for [ReadModel1] already exists.");
                 };
             };
+
+            context["given a projection defintion has a duplicate event handler"] = () =>
+            {
+                Mock<IProjectionRepository> repository = null;
+                IProjectionDefinition[] definitions = null;
+                Action action = null;
+
+                beforeEach = () =>
+                {
+                    repository = new Mock<IProjectionRepository>();
+                    definitions = new IProjectionDefinition[]
+                    {
+                        new MockDefinition((builder) =>
+                        {
+                            builder.ForModel<ReadModel1>().InitialState(() => new ReadModel1())
+                                .When<string>((e, s) => s.State = "")
+                                .When<string>((e, s) => s.State = "");
+                        })
+                    };
+                };
+
+                act = () => action = () => new ProjectionFactory(repository.Object, definitions);
+
+                it["will throw an exception"] = () =>
+                {
+                    action.ShouldThrow<DuplicateEventHandlerException>().WithMessage("An event handler for event type: [string] already exists for projection definition: [MockDefinition].");
+                };
+            };
         }
 
         void describe_CreateProjection_method()

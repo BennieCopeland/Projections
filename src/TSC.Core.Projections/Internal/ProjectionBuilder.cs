@@ -11,6 +11,7 @@ namespace TSC.Core.Projections.Internal
     internal class ProjectionBuilder : IDefinitionBuilder
     {
         private IHelper helper;
+        private IProjectionDefinition definition;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectionBuilder"/> class.
@@ -18,7 +19,9 @@ namespace TSC.Core.Projections.Internal
         /// <param name="definition">The projection definition to create a projection from.</param>
         public ProjectionBuilder(IProjectionDefinition definition)
         {
-            definition.DefineProjection(this);
+            this.definition = definition;
+
+            this.definition.DefineProjection(this);
 
             if (!this.ProjectionDefined())
             {
@@ -106,10 +109,17 @@ namespace TSC.Core.Projections.Internal
             {
                 this.projectionBuilder.EventHandlerSet = true;
 
-                this.Handlers.Add(typeof(TEvent), (e, m, s) =>
+                try
                 {
-                    when((TEvent)e, (TState)s);
-                });
+                    this.Handlers.Add(typeof(TEvent), (e, m, s) =>
+                    {
+                        when((TEvent)e, (TState)s);
+                    });
+                }
+                catch (ArgumentException)
+                {
+                    throw new DuplicateEventHandlerException(this.projectionBuilder.definition.GetType(), typeof(TEvent));
+                }
 
                 return this;
             }
@@ -118,10 +128,17 @@ namespace TSC.Core.Projections.Internal
             {
                 this.projectionBuilder.EventHandlerSet = true;
 
-                this.Handlers.Add(typeof(TEvent), (e, m, s) =>
+                try
                 {
-                    when((TEvent)e, m, (TState)s);
-                });
+                    this.Handlers.Add(typeof(TEvent), (e, m, s) =>
+                    {
+                        when((TEvent)e, m, (TState)s);
+                    });
+                }
+                catch (ArgumentException)
+                {
+                    throw new DuplicateEventHandlerException(this.projectionBuilder.definition.GetType(), typeof(TEvent));
+                }
 
                 return this;
             }
