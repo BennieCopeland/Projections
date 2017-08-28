@@ -19,7 +19,7 @@ namespace TSC.Core.Projections.Tests
             var builder = new ContextBuilder(finder, tagsFilter, new DefaultConventions());
             var console = new ConsoleFormatter();
 
-            IFormatter[] formatters =
+            var formatters = new List<IFormatter>
             {
                 console
             };
@@ -30,7 +30,7 @@ namespace TSC.Core.Projections.Tests
             if (options.ContainsKey("file"))
             {
                 xunit.Options.Add("file", options["file"]);
-                formatters.Append(xunit);
+                formatters.Add(xunit);
             }
 
 
@@ -39,7 +39,7 @@ namespace TSC.Core.Projections.Tests
                 console
             };
 
-            var runner = new ContextRunner(tagsFilter, new MultiOutputFormatter(formatters, liveFormatters), false);
+            var runner = new ContextRunner(tagsFilter, new MultiOutputFormatter(formatters.ToArray(), liveFormatters), false);
             var contextCollection = builder.Contexts().Build();
 
             //var ri = new RunnerInvocation(Assembly.GetEntryAssembly().Location, "", false);
